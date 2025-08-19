@@ -16,6 +16,12 @@ import Worksheetadd from "./pages/Worksheetadd";
 import Worksheetedit from "./pages/Worksheetedit";
 import MonthlyReport from "./components/MonthlyReport"; 
 import MonthlyReportEdit from "./components/MonthlyReportEdit";
+import Pcpadd from "./pages/Pcpadd";
+import PcpList from "./pages/Pcplist";
+import Pcpedit from "./pages/Pcpedit";
+import TwoMinuteDrillAdd from "./pages/TwoMinuteDrillAdd";
+import TwoMinuteDrillEdit from "./pages/TwoMinuteDrillEdit";
+import TwoMinuteDrillList from "./pages/TwoMinuteDrillList";
 
 const App = () => {
   return (
@@ -31,6 +37,12 @@ const App = () => {
         <Route path="/calendar/view/:id" element={<Calendarview />} />
         <Route path="/resume/add" element={<Resumeadd />} />
         <Route path="/resume/list" element={<Resumelist />} />
+        <Route path="/pcp/add" element={<Pcpadd />} />
+        <Route path="/pcp/edit/:id" element={<Pcpedit />} />
+        <Route path="/pcp/list" element={<PcpList />} />
+        <Route path="/2mindrill/add" element={<TwoMinuteDrillAdd />} />
+        <Route path="/2mindrill/edit/:id" element={<TwoMinuteDrillEdit />} />
+        <Route path="/2mindrill/list" element={<TwoMinuteDrillList />} />
         <Route path="/resume/edit/:id" element={<Resumeedit />} />
         <Route path="/worksheets/list" element={<Worksheetlist />} />
         <Route path="/worksheets/add" element={<Worksheetadd />} />

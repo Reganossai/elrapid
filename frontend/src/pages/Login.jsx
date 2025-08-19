@@ -9,47 +9,56 @@ const Login = () => {
   const [error, setError] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   // Check if the user is already logged in
   useEffect(() => {
-  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-  const role = localStorage.getItem("role") || sessionStorage.getItem("role");
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
+    const role = localStorage.getItem("role") || sessionStorage.getItem("role");
 
-  if (token && role) {
-    navigate(role === "admin" ? "/admin-dashboard" : "/user-dashboard");
-  }
-}, []);
+    if (token && role) {
+      navigate(role === "admin" ? "/admin-dashboard" : "/user-dashboard");
+    }
+  }, []);
 
   // Handle login request
   const handleLogin = async (event) => {
-  event.preventDefault();
-  try {
-    const response = await axios.post("http://localhost:5000/api/login", {
-      email,
-      password,
-    });
+    event.preventDefault();
+    setIsLoading(true); // Start loading
+    setError(""); // Clear previous errors
 
-    console.log("🔄 Server response:", response.data);
+    try {
+      const response = await axios.post("http://localhost:5000/api/login", {
+        email,
+        password,
+      });
 
-    if (response.data.success) {
-      localStorage.removeItem("token");
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("role", response.data.role);
-      localStorage.setItem("firstname", response.data.firstname);
-      localStorage.setItem("lastname", response.data.lastname);
+      console.log("🔄 Server response:", response.data);
 
+      if (response.data.success) {
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("role", response.data.role);
+        localStorage.setItem("firstname", response.data.firstname);
+        localStorage.setItem("lastname", response.data.lastname);
 
-      alert("✅ Login Successful!");
-      navigate(response.data.role === "admin" ? "/admin-dashboard" : "/user-dashboard");
-    } else {
-      setError(response.data.message);
+        alert("✅ Login Successful!");
+        navigate(
+          response.data.role === "admin"
+            ? "/admin-dashboard"
+            : "/user-dashboard"
+        );
+      } else {
+        setError(response.data.message);
+      }
+    } catch (error) {
+      console.error("❌ Login error:", error);
+      setError("❌ Invalid credentials!");
+    } finally {
+      setIsLoading(false); // End loading
     }
-  } catch (error) {
-    console.error("❌ Login error:", error);
-    setError("❌ Invalid credentials!");
-  }
-};
+  };
 
   return (
     <div className="login-div">
@@ -90,7 +99,7 @@ const Login = () => {
               background: "transparent",
               border: "none",
               cursor: "pointer",
-              width:"50px",
+              width: "50px",
             }}
           >
             {isPasswordVisible ? "👁️" : "🙈"}
@@ -106,7 +115,9 @@ const Login = () => {
           <label className="remem">Remember Me</label>
         </div>
 
-        <button className="butttt" type="submit">Login</button>
+        <button className="butttt" type="submit" disabled={isLoading}>
+          {isLoading ? "Logging in..." : "Login"}
+        </button>
       </form>
       {error && <p style={{ color: "red" }}>{error}</p>}
     </div>

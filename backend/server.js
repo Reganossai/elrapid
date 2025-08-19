@@ -89,6 +89,57 @@ const CalendarEvent = mongoose.model(
   })
 );
 
+
+const Pcp = mongoose.model(
+  "Pcp",
+  new mongoose.Schema(
+    {
+      individual: String,
+      vision: String,
+      whatWorks: String,
+      whatDoesNotWork: String,
+      strengths: String,
+      goals: String,
+      whatMatters: String,
+      importantTo: String,
+      importantFor: String,
+      specialPeople: String,
+      supportPreferences: String,
+      personalityTraits: String,
+      interests: String,
+      communicationStyle: String,
+      decisionMaking: String,
+      dreams: String,
+      futureVision: String,
+      createdBy: String,
+    },
+    { timestamps: true }
+  )
+);
+
+
+const TwoMinuteDrill = mongoose.model(
+  "TwoMinuteDrill",
+  new mongoose.Schema(
+    {
+      individual: String,
+      date: String,
+      heightWeight: String,
+      ageSex: String,
+      raceColor: String,
+      appearance: String,
+      mobilityCommute: String,
+      address: String,
+      personality: String,
+      likesDislikes: String,
+      thingsToNote: String,
+      createdBy: String,
+    },
+    { timestamps: true }
+  )
+);
+
+
 const User = mongoose.model(
   "User",
   new mongoose.Schema(
@@ -108,6 +159,8 @@ const User = mongoose.model(
     { collection: "coach" }
   )
 );
+
+
 
 // 🔐 Hash password before save
 User.schema.pre("save", async function (next) {
@@ -586,6 +639,176 @@ app.delete("/api/report/delete", verifyToken, async (req, res) => {
   } catch (err) {
     console.error("Error deleting report:", err);
     res.status(500).json({ success: false, message: "Server error." });
+  }
+});
+
+
+// --- PCP: Add new entry
+app.post("/api/pcp/add", verifyToken, async (req, res) => {
+  try {
+    const newPcp = new Pcp(req.body);
+    await newPcp.save();
+    res.status(201).json({ success: true, message: "PCP added successfully" });
+  } catch (error) {
+    console.error("❌ Error adding PCP:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// --- PCP: List all entries
+app.get("/api/pcp/list", verifyToken, async (req, res) => {
+  try {
+    const pcps = await Pcp.find().sort({ createdAt: -1 });
+    res.json({ success: true, pcps });
+  } catch (error) {
+    console.error("❌ Error fetching PCPs:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
+app.delete("/api/pcp/delete/:id", verifyToken, async (req, res) => {
+  try {
+    const deleted = await Pcp.findByIdAndDelete(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: "PCP not found" });
+    }
+    res.json({ success: true, message: "PCP deleted" });
+  } catch (err) {
+    console.error("Error deleting PCP:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// --- PCP: Edit existing entry
+app.put("/api/pcp/edit/:id", verifyToken, async (req, res) => {
+  try {
+    const updated = await Pcp.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updated) {
+      return res.status(404).json({ success: false, message: "PCP not found" });
+    }
+
+    res.json({ success: true, message: "PCP updated successfully", pcp: updated });
+  } catch (error) {
+    console.error("❌ Error updating PCP:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
+// --- PCP: Get single entry by ID
+app.get("/api/pcp/:id", verifyToken, async (req, res) => {
+  try {
+    const pcp = await Pcp.findById(req.params.id);
+    if (!pcp) {
+      return res.status(404).json({ success: false, message: "PCP not found" });
+    }
+
+    res.json({ success: true, pcp });
+  } catch (error) {
+    console.error("❌ Error fetching PCP:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
+/* ===========================
+   🧠 2-Minute Drill Routes
+=========================== */
+
+// List all drills
+app.get("/api/2mindrill/list", verifyToken, async (req, res) => {
+  try {
+    const drills = await TwoMinuteDrill.find({ createdBy: req.user.email }).sort({ createdAt: -1 });
+    res.json({ success: true, drills });
+  } catch (err) {
+    console.error("❌ Error fetching drills:", err.message);
+    res.status(500).json({ success: false, drills: [] });
+  }
+});
+
+// Add new 2-Minute Drill
+app.post("/api/2mindrill/add", verifyToken, async (req, res) => {
+  try {
+    const {
+      individual,
+      date,
+      heightWeight,
+      ageSex,
+      raceColor,
+      appearance,
+      mobilityCommute,
+      address,
+      personality,
+      likesDislikes,
+      thingsToNote,
+    } = req.body;
+
+    const newDrill = new TwoMinuteDrill({
+      individual,
+      date,
+      heightWeight,
+      ageSex,
+      raceColor,
+      appearance,
+      mobilityCommute,
+      address,
+      personality,
+      likesDislikes,
+      thingsToNote,
+      createdBy: req.user.email,
+    });
+
+    await newDrill.save();
+    console.log("✅ Drill added:", newDrill._id);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("❌ Error adding drill:", err.message);
+    res.status(500).json({ success: false });
+  }
+});
+
+// Edit drill
+app.put("/api/2mindrill/edit/:id", verifyToken, async (req, res) => {
+  try {
+    const updated = await TwoMinuteDrill.findOneAndUpdate(
+      { _id: req.params.id, createdBy: req.user.email },
+      req.body,
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ success: false, message: "Drill not found" });
+    }
+
+    console.log("✅ Drill updated:", updated._id);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("❌ Error editing drill:", err.message);
+    res.status(500).json({ success: false });
+  }
+});
+
+app.delete("/api/2mindrill/delete/:id", verifyToken, async (req, res) => {
+  try {
+    const deleted = await TwoMinuteDrill.findOneAndDelete({
+      _id: req.params.id,
+      createdBy: req.user.email,
+    });
+
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: "Drill not found" });
+    }
+
+    console.log("🗑️ Drill deleted:", deleted._id);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("❌ Error deleting drill:", err.message);
+    res.status(500).json({ success: false });
   }
 });
 

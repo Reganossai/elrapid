@@ -13,7 +13,6 @@ import { BsFillCalendar2DateFill } from "react-icons/bs";
 import { MdGridView } from "react-icons/md";
 import { TbLockSquare } from "react-icons/tb";
 
-
 const Sidebar = () => {
   const [expanded, setExpanded] = useState({
     dashboard: false,
@@ -23,6 +22,8 @@ const Sidebar = () => {
     pcp: false,
     isp: false,
     monthly: false,
+    pcp: false,
+    twomindrill:false,
     progress: false,
     assesment: false,
     worksheets: false,
@@ -42,16 +43,60 @@ const Sidebar = () => {
         className="sidebar-toggle"
         onClick={() => toggleExpand("dashboard")}
       >
-       <span ><TbHomeFilled className="icons" /></span> Dashboard {expanded.dashboard ? "▲" : "▼"}
+        <span>
+          <TbHomeFilled className="icons" />
+        </span>{" "}
+        Dashboard {expanded.dashboard ? "▲" : "▼"}
       </button>
       {expanded.dashboard && (
         <div className="dropdown">
           <NavLink to="/" className="sidebar-link">
-            • Home  
+            • Home
           </NavLink>
         </div>
       )}
 
+      
+      <button className="sidebar-toggle" onClick={() => toggleExpand("pcp")}>
+        <span>
+          {" "}
+          <FaCalendarCheck className="icons" />{" "}
+        </span>{" "}
+        Pcp {expanded.pcp ? "▲" : "▼"}
+      </button>
+      {expanded.pcp && (
+        <div className="dropdown">
+          <NavLink to="/pcp/add" className="sidebar-link">
+            • Add
+          </NavLink>
+
+          <NavLink to="/pcp/list" className="sidebar-link">
+            • List
+          </NavLink>
+        </div>
+      )}
+
+
+      <button className="sidebar-toggle" onClick={() => toggleExpand("twomindrill")}>
+        <span>
+          {" "}
+          <FaCalendarCheck className="icons" />{" "}
+        </span>{" "}
+        2mins drill {expanded.twomindrill ? "▲" : "▼"}
+      </button>
+      {expanded.twomindrill && (
+        <div className="dropdown">
+          <NavLink to="/2mindrill/add" className="sidebar-link">
+            • Add
+          </NavLink>
+
+          <NavLink to="/2mindrill/list" className="sidebar-link">
+            • List
+          </NavLink>
+        </div>
+      )}
+
+ 
       {/* <h1 className="module-head">USERS</h1>
       <button
         className="sidebar-toggle"
@@ -73,12 +118,15 @@ const Sidebar = () => {
         className="sidebar-toggle"
         onClick={() => toggleExpand("resumes")}
       >
-        <span ><TbFileCv className="icons"/></span> Resumes {expanded.resumes ? "▲" : "▼"}
+        <span>
+          <TbFileCv className="icons" />
+        </span>{" "}
+        Resumes {expanded.resumes ? "▲" : "▼"}
       </button>
       {expanded.resumes && (
         <div className="dropdown">
           <NavLink to="/resume/list" className="sidebar-link">
-            •  List
+            • List
           </NavLink>
           <NavLink to="/resume/add" className="sidebar-link">
             ➕ Add
@@ -194,12 +242,16 @@ const Sidebar = () => {
         className="sidebar-toggle"
         onClick={() => toggleExpand("worksheets")}
       >
-      <span > <FaFileLines className="icons"/> </span> Worksheets {expanded.worksheets ? "▲" : "▼"}
+        <span>
+          {" "}
+          <FaFileLines className="icons" />{" "}
+        </span>{" "}
+        Worksheets {expanded.worksheets ? "▲" : "▼"}
       </button>
       {expanded.worksheets && (
         <div className="dropdown">
           <NavLink to="/worksheets/list" className="sidebar-link">
-            •  List
+            • List
           </NavLink>
           <NavLink to="/worksheets/add" className="sidebar-link">
             ➕ Add
@@ -212,19 +264,22 @@ const Sidebar = () => {
         className="sidebar-toggle"
         onClick={() => toggleExpand("calendars")}
       >
-      <span><BsFillCalendar2DateFill className="icons"/></span> Calendars {expanded.calendars ? "▲" : "▼"}
+        <span>
+          <BsFillCalendar2DateFill className="icons" />
+        </span>{" "}
+        Calendars {expanded.calendars ? "▲" : "▼"}
       </button>
       {expanded.calendars && (
         <div className="dropdown">
           <NavLink to="/calendar/list" className="sidebar-link">
-            •  List
+            • List
           </NavLink>
           <NavLink to="/calendar/add" className="sidebar-link">
             ➕ Add
-          </NavLink>          
+          </NavLink>
         </div>
       )}
-{/* 
+      {/* 
       <h1 className="module-head">ERP</h1>
       <button className="sidebar-toggle" onClick={() => toggleExpand("forms")}>
        <span className="icons"> <MdGridView /></span> HCD Forms {expanded.forms ? "▲" : "▼"}
@@ -246,29 +301,37 @@ const Sidebar = () => {
         className="sidebar-toggle"
         onClick={() => toggleExpand("authentication")}
       >
-        <span> <TbLockSquare className="icons"/></span> Authentication {expanded.authentication ? "▲" : "▼"}
+        <span>
+          {" "}
+          <TbLockSquare className="icons" />
+        </span>{" "}
+        Authentication {expanded.authentication ? "▲" : "▼"}
       </button>
       {expanded.authentication && (
         <div className="dropdown">
           <NavLink to="/profile" className="sidebar-link">
-          Profile
+            Profile
           </NavLink>
         </div>
       )}
-<h1 className="module-head">MAR</h1>
+      <h1 className="module-head">MAR</h1>
       <button
-  className="sidebar-toggle"
-  onClick={() => toggleExpand("monthly")}
->
-  <span> <FaCalendarCheck className="icons"/> </span> Monthly Activities {expanded.monthly ? "▲" : "▼"}
-</button>
-{expanded.monthly && (
-  <div className="dropdown">
-    <NavLink to="/monthly/report" className="sidebar-link">
-      • Monthly Report
-    </NavLink>
-  </div>
-)}
+        className="sidebar-toggle"
+        onClick={() => toggleExpand("monthly")}
+      >
+        <span>
+          {" "}
+          <FaCalendarCheck className="icons" />{" "}
+        </span>{" "}
+        Monthly Activities {expanded.monthly ? "▲" : "▼"}
+      </button>
+      {expanded.monthly && (
+        <div className="dropdown">
+          <NavLink to="/monthly/report" className="sidebar-link">
+            • Monthly Report
+          </NavLink>
+        </div>
+      )}
 
       {/* Keeping all other modules untouched
       <h1 className="module-head">ASSESMENT</h1>

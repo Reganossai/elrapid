@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Worksheetadd = () => {
   const [title, setTitle] = useState("");
@@ -7,6 +8,7 @@ const Worksheetadd = () => {
   const [skillType, setSkillType] = useState("");
   const [individual, setIndividual] = useState("");
   const [individualOptions, setIndividualOptions] = useState([]);
+  const navigate = useNavigate();
 
   const skillOptions = [
     "Stocking",
@@ -64,8 +66,8 @@ const Worksheetadd = () => {
   return (
     <div className="cal-tab">
       <form onSubmit={handleSubmit}>
+        <button onClick={() => navigate("/")}>← Back</button>
         <h3>📄 Upload Worksheet</h3>
-
         <input
           type="text"
           value={title}
