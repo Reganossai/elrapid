@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import logo from "../assets/logo.svg";
+import logo from "../assets/ovo.jpg";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -65,10 +65,9 @@ const Login = () => {
       <form onSubmit={handleLogin}>
         <div className="elrapido-div">
           <img src={logo} className="logo" alt="logo" />
-          <h2 className="elrapido">Elrapido</h2>
+          <h2 className="elrapido">OVO</h2>
         </div>
-        <h1>Welcome to Elrapido</h1>
-        <p>Please sign into your account</p>
+        <p className="pls"> Please sign into your account</p>
 
         <label className="lal">Email</label>
         <input

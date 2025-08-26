@@ -22,7 +22,6 @@ const Sidebar = () => {
     pcp: false,
     isp: false,
     monthly: false,
-    pcp: false,
     twomindrill:false,
     progress: false,
     assesment: false,
@@ -59,9 +58,8 @@ const Sidebar = () => {
       
       <button className="sidebar-toggle" onClick={() => toggleExpand("pcp")}>
         <span>
-          {" "}
-          <FaCalendarCheck className="icons" />{" "}
-        </span>{" "}
+          <FaCalendarCheck className="icons" />
+        </span>
         Pcp {expanded.pcp ? "▲" : "▼"}
       </button>
       {expanded.pcp && (
@@ -79,9 +77,8 @@ const Sidebar = () => {
 
       <button className="sidebar-toggle" onClick={() => toggleExpand("twomindrill")}>
         <span>
-          {" "}
-          <FaCalendarCheck className="icons" />{" "}
-        </span>{" "}
+          <FaCalendarCheck className="icons" />
+        </span>
         2mins drill {expanded.twomindrill ? "▲" : "▼"}
       </button>
       {expanded.twomindrill && (

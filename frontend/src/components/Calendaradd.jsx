@@ -20,6 +20,8 @@ const Calendaradd = () => {
     getWorkingDaysOfMonth(new Date().getFullYear(), new Date().getMonth())
   );
 
+  const navigate = useNavigate();
+
   const hardSkillOptions = [
     "Stocking",
     "Facing",
@@ -35,22 +37,6 @@ const Calendaradd = () => {
     "Adaptability",
     "Time Management",
   ];
-
-  const navigate = useNavigate();
-
-  const handleNext = () => setStep((prev) => prev + 1);
-  const handleBack = () => setStep((prev) => prev - 1);
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const newValue = type === "checkbox" ? checked : value;
-
-    setFormData({ ...formData, [name]: newValue });
-
-    if (name === "individual") {
-      localStorage.setItem("selectedIndividualName", value);
-    }
-  };
 
   function getWorkingDaysOfMonth(year, month) {
     const days = [];
@@ -71,27 +57,40 @@ const Calendaradd = () => {
     return days;
   }
 
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const newValue = type === "checkbox" ? checked : value;
+    setFormData({ ...formData, [name]: newValue });
+
+    if (name === "individual") {
+      localStorage.setItem("selectedIndividualName", value);
+    }
+  };
+
   const handleTaskChange = (index, value, page) => {
     const updatedTasks = [...formData[page]];
     updatedTasks[index] = value;
     setFormData({ ...formData, [page]: updatedTasks });
   };
 
+  const handleNext = () => setStep((prev) => prev + 1);
+
+  const handleBack = () => setStep((prev) => prev - 1);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const cleanSkills = (skills) =>
-      skills
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .map((s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase());
+    const cleanSkills = (skills) => skills.map((s) => s.trim()).filter(Boolean);
 
-    const cleanedNotes = dailyNotes.map((note) => ({
+    const combinedWorkSkill = cleanSkills(formData.tasksPage1).join(", ");
+    const combinedSoftSkill = cleanSkills(formData.tasksPage2).join(", ");
+
+    const enrichedNotes = dailyNotes.map((note) => ({
       ...note,
       date: new Date(note.date).toISOString(),
       morningBriefing: note.morningBriefing.trim(),
-      workSkill: note.workSkill.trim(),
-      softSkill: note.softSkill.trim(),
+      workSkill: note.workSkill.trim() || combinedWorkSkill,
+      softSkill: note.softSkill.trim() || combinedSoftSkill,
       subSoftSkill: note.subSoftSkill.trim(),
     }));
 
@@ -100,7 +99,7 @@ const Calendaradd = () => {
       date: new Date(formData.date).toISOString(),
       tasksPage1: cleanSkills(formData.tasksPage1),
       tasksPage2: cleanSkills(formData.tasksPage2),
-      dailyNotes: cleanedNotes,
+      dailyNotes: enrichedNotes,
     };
 
     try {
@@ -260,26 +259,38 @@ const Calendaradd = () => {
                 />
 
                 <label>Work Skill:</label>
-                <input
-                  type="text"
+                <select
                   value={note.workSkill}
                   onChange={(e) => {
                     const updated = [...dailyNotes];
                     updated[index].workSkill = e.target.value;
                     setDailyNotes(updated);
                   }}
-                />
+                >
+                  <option value="">Select</option>
+                  {hardSkillOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
 
                 <label>Soft Skill:</label>
-                <input
-                  type="text"
+                <select
                   value={note.softSkill}
                   onChange={(e) => {
                     const updated = [...dailyNotes];
                     updated[index].softSkill = e.target.value;
                     setDailyNotes(updated);
                   }}
-                />
+                >
+                  <option value="">Select</option>
+                  {softSkillOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
 
                 <label>Sub Soft Skill:</label>
                 <input
@@ -299,7 +310,7 @@ const Calendaradd = () => {
                     onChange={(e) => {
                       const updated = [...dailyNotes];
                       updated[index].isHoliday = e.target.checked;
-                       setDailyNotes(updated);
+                      setDailyNotes(updated);
                     }}
                   />
                   Is Holiday
@@ -318,4 +329,3 @@ const Calendaradd = () => {
 };
 
 export default Calendaradd;
-

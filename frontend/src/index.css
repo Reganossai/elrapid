@@ -68,15 +68,20 @@ button:hover {
 .logo {
   width: 62px;
   height: 42px;
+  border-radius: 100px;  
 }
 
 .elrapido {
   font-size: 25px;
-  font-weight: 900;
+  font-weight: 700;
   margin: 0px 0px 0px 10px;
   color: #2c3e50;
   text-decoration: none;
 
+}
+
+.pls{
+  margin: 20px 0px 5px 0px;
 }
 
 .elrapido-div {

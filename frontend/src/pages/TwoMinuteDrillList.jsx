@@ -44,45 +44,63 @@ const TwoMinuteDrillList = () => {
 const exportDrillPDF = (drill) => {
   const doc = new jsPDF();
   doc.setFont("helvetica");
-  doc.addImage(logoBase64, "PNG", 150, 10, 40, 20); // x=150 shifts it to the right
+
+  // Logo top-right
+  doc.addImage(logoBase64, "JPEG", 150, 10, 40, 20);
+
+  // Title centered
   doc.setFontSize(16);
-  doc.text("2-Minute Drill Summary", 20, 20);
+  doc.setFont(undefined, "bold");
+  doc.text("2 Minute Drill for Participant", doc.internal.pageSize.getWidth() / 2, 20, { align: "center" });
+
   doc.setFontSize(12);
+  doc.setFont(undefined, "normal");
 
   let y = 30;
 
-  const addSection = (title, content, numbered = false) => {
+  const addLine = (label, value) => {
     doc.setFont(undefined, "bold");
-    doc.text(title, 20, y);
-    y += 6;
+    doc.text(`${label}:`, 20, y);
     doc.setFont(undefined, "normal");
-
-    if (Array.isArray(content)) {
-      content.forEach((item, i) => {
-        doc.text(`${numbered ? i + 1 + ". " : "- "} ${item}`, 25, y);
-        y += 6;
-        if (y > 280) {
-          doc.addPage();
-          y = 20;
-        }
-      });
-    } else {
-      doc.text(content || "—", 25, y);
-      y += 10;
-    }
+    doc.text(value || "—", 70, y);
+    y += 8;
   };
 
-  addSection("Individual", drill.individual);
-  addSection("Date", drill.date);
-  addSection("Height & Weight", drill.heightWeight);
-  addSection("Age & Sex", drill.ageSex);
-  addSection("Race & Color", drill.raceColor);
-  addSection("Appearance", drill.appearance);
-  addSection("Mobility & Commute", drill.mobilityCommute);
-  addSection("Address", drill.address);
-  addSection("Personality", drill.personality);
-  addSection("Likes & Dislikes", drill.likesDislikes);
-  addSection("Things to Note", drill.thingsToNote);
+  // Top fields
+  addLine("Name", drill.individual);
+  addLine("Height/Weight", drill.heightWeight);
+  addLine("Age", drill.ageSex?.split(" ")[0] || "—");
+  addLine("Hair Color", drill.raceColor?.split("/")[0] || "—");
+  addLine("Eye Color", drill.raceColor?.split("/")[1] || "—");
+
+  // Address & Commute
+  y += 4;
+  doc.setFont(undefined, "bold");
+  doc.text("Apartment:", 20, y);
+  doc.setFont(undefined, "normal");
+  doc.text(drill.address || "—", 70, y);
+  y += 8;
+
+  doc.setFont(undefined, "bold");
+  doc.text("Commute:", 20, y);
+  doc.setFont(undefined, "normal");
+  doc.text(drill.mobilityCommute || "—", 70, y);
+  y += 12;
+
+  // Hobbies
+  doc.setFont(undefined, "bold");
+  doc.text("Hobbies:", 20, y);
+  y += 6;
+  doc.setFont(undefined, "normal");
+  doc.text(drill.likesDislikes || "—", 25, y, { maxWidth: 160 });
+  y += 20;
+
+  // Orientation Notes
+  doc.setFont(undefined, "bold");
+  doc.text("Notes on Orientation:", 20, y);
+  y += 6;
+  doc.setFont(undefined, "normal");
+  doc.text(drill.thingsToNote || "—", 25, y, { maxWidth: 160 });
 
   doc.save(`2min-drill-${drill.individual || "unknown"}.pdf`);
 };

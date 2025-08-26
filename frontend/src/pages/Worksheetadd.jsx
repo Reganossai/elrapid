@@ -36,32 +36,40 @@ const Worksheetadd = () => {
   }, []);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const formData = new FormData();
-    formData.append("title", title);
-    formData.append("individual", individual);
-    formData.append("skillType", skillType);
-    formData.append("file", file);
-    formData.append("date", new Date().toISOString().slice(0, 10));
+  const formData = new FormData();
+  formData.append("title", title);
+  formData.append("individual", individual);
+  formData.append("skillType", skillType);
+  formData.append("file", file);
+  formData.append("date", new Date().toISOString().slice(0, 10));
 
-    try {
-      await axios.post("http://localhost:5000/api/worksheets", formData);
-      alert("✅ Worksheet uploaded successfully");
-      setTitle("");
-      setFile(null);
-      setSkillType("");
-      console.log("Submitting worksheet with:", {
-        individual,
-        skillType,
-        title,
-        file,
-      });
-    } catch (err) {
-      console.error("❌ Upload error:", err);
-      alert("Failed to upload worksheet");
-    }
-  };
+  // 🔍 Extract YouTube link from filename if present
+  const fileName = file?.name || "";
+  const linkMatch = fileName.match(/https?:\/\/(www\.)?youtube\.com\/[^\s]+/);
+  if (linkMatch) {
+    formData.append("youtubeLink", linkMatch[0]);
+  }
+
+  try {
+    await axios.post("http://localhost:5000/api/worksheets", formData);
+    alert("✅ Worksheet uploaded successfully");
+    setTitle("");
+    setFile(null);
+    setSkillType("");
+    console.log("Submitting worksheet with:", {
+      individual,
+      skillType,
+      title,
+      file,
+      youtubeLink: linkMatch?.[0] || "none",
+    });
+  } catch (err) {
+    console.error("❌ Upload error:", err);
+    alert("Failed to upload worksheet");
+  }
+};
 
   return (
     <div className="cal-tab">
