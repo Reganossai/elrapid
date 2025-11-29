@@ -7,15 +7,13 @@ const Worksheetlist = () => {
   const [worksheets, setWorksheets] = useState([]);
   const [sss, setSss] = useState("");
 
-  // ✅ Load SSS from localStorage
+  // Load SSS
   useEffect(() => {
     const storedSss = localStorage.getItem("sss");
-    if (storedSss) {
-      setSss(storedSss);
-    }
+    if (storedSss) setSss(storedSss);
   }, []);
 
-  // ✅ Fetch worksheets
+  // Fetch worksheets
   useEffect(() => {
     fetch("http://localhost:5000/api/worksheets")
       .then((res) => res.json())
@@ -34,9 +32,13 @@ const Worksheetlist = () => {
       .catch((err) => console.error("❌ Delete failed:", err));
   };
 
+  // Build the correct file URL
+  const getFileUrl = (fileName) => `http://localhost:5000/uploads/${fileName}`;
+
   return (
     <div className="cal-tab">
       <button onClick={() => navigate("/")}>← Back to Home</button>
+
       {worksheets.length === 0 ? (
         <p>No entries found.</p>
       ) : (
@@ -50,6 +52,7 @@ const Worksheetlist = () => {
               <th>Actions</th>
             </tr>
           </thead>
+
           <tbody>
             {worksheets.map((ws) => (
               <tr key={ws._id}>
@@ -57,8 +60,28 @@ const Worksheetlist = () => {
                 <td>{ws.individual}</td>
                 <td>{ws.date}</td>
                 <td>{ws.fileName}</td>
-                <td>
-                  <button onClick={() => handleDelete(ws._id)}>Delete</button>
+
+                <td style={{ display: "flex", gap: "10px" }}>
+                  {/* DELETE */}
+                  <button
+                    className="delete-btn"
+                    onClick={() => handleDelete(ws._id)}
+                  >
+                    Delete
+                  </button>
+
+                  {/* DOWNLOAD */}
+                  <a className="download-btn" href={ws.fileUrl} download>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      height="18"
+                      width="18"
+                      viewBox="0 0 24 24"
+                      fill="white"
+                    >
+                      <path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4V7h3l-5-5z" />
+                    </svg>
+                  </a>
                 </td>
               </tr>
             ))}

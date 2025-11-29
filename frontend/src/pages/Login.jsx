@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import logo from "../assets/ovo.jpg";
+import logo from "../assets/logo.jpg";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -22,6 +22,7 @@ const Login = () => {
       navigate(role === "admin" ? "/admin-dashboard" : "/user-dashboard");
     }
   }, []);
+
 
   // Handle login request
   const handleLogin = async (event) => {
@@ -61,8 +62,12 @@ const Login = () => {
   };
 
   return (
+  
     <div className="login-div">
+
       <form onSubmit={handleLogin}>
+
+        
         <div className="elrapido-div">
           <img src={logo} className="logo" alt="logo" />
           <h2 className="elrapido">OVO</h2>

@@ -147,183 +147,188 @@ const Calendaradd = () => {
               <option value="Dayo">Dayo</option>
             </select>
 
-            <label>Location:</label>
+              <label>Location:</label>
+        <select
+          name="location"
+          value={formData.location}
+          onChange={handleChange}
+          required
+        >
+          <option value="">Select</option>
+          <option value="Staples">Staples</option>
+          <option value="Dollar King">Dollar King</option>
+          <option value="7/11">7/11</option>
+        </select>
+
+        <label>Date:</label>
+        <input
+          type="date"
+          name="date"
+          value={formData.date}
+          onChange={handleChange}
+          required
+        />
+
+        <button type="button" onClick={handleNext}>
+          Next
+        </button>
+      </div>
+    )}
+
+    {step === 2 && (
+      <div>
+        <h3>Work Skills</h3>
+        {formData.tasksPage1.map((task, index) => (
+          <div key={index}>
+            <label>Work Skill {index + 1}:</label>
             <select
-              name="location"
-              value={formData.location}
-              onChange={handleChange}
+              value={task}
+              onChange={(e) =>
+                handleTaskChange(index, e.target.value, "tasksPage1")
+              }
               required
             >
               <option value="">Select</option>
-              <option value="Staples">Staples</option>
-              <option value="Dollar King">Dollar King</option>
-              <option value="7/11">7/11</option>
+              {hardSkillOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+        ))}
+        <button type="button" onClick={handleBack}>
+          Back
+        </button>
+        <button type="button" onClick={handleNext}>
+          Next
+        </button>
+      </div>
+    )}
+
+    {step === 3 && (
+      <div>
+        <h3>Soft Skills</h3>
+        {formData.tasksPage2.map((task, index) => (
+          <div key={index}>
+            <label>Soft Skill {index + 1}:</label>
+            <select
+              value={task}
+              onChange={(e) =>
+                handleTaskChange(index, e.target.value, "tasksPage2")
+              }
+              required
+            >
+              <option value="">Select</option>
+              {softSkillOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+        ))}
+        <button type="button" onClick={handleBack}>
+          Back
+        </button>
+        <button type="button" onClick={handleNext}>
+          Next
+        </button>
+      </div>
+    )}
+
+    {step === 4 && (
+      <div>
+        <h3>Daily Notes for This Month</h3>
+        {dailyNotes.map((note, index) => (
+          <div
+            key={index}
+            style={{ marginBottom: "1rem", borderBottom: "1px solid #ccc" }}
+          >
+            <strong>{new Date(note.date).toDateString()}</strong>
+
+            <label>Morning Briefing:</label>
+            <select
+              value={note.morningBriefing}
+              onChange={(e) => {
+                const updated = [...dailyNotes];
+                updated[index].morningBriefing = e.target.value;
+                setDailyNotes(updated);
+              }}
+              required
+            >
+              <option value="">Select</option>
+              <option value="anger management">Anger Management</option>
+              <option value="respecting boundaries">Respecting Boundaries</option>
+              <option value="self control">Self Control</option>
             </select>
 
-            <label>Date:</label>
+            <label>Work Skill:</label>
+            <select
+              value={note.workSkill}
+              onChange={(e) => {
+                const updated = [...dailyNotes];
+                updated[index].workSkill = e.target.value;
+                setDailyNotes(updated);
+              }}
+            >
+              <option value="">Select</option>
+              {hardSkillOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+
+            <label>Soft Skill:</label>
+            <select
+              value={note.softSkill}
+              onChange={(e) => {
+                const updated = [...dailyNotes];
+                updated[index].softSkill = e.target.value;
+                setDailyNotes(updated);
+              }}
+            >
+              <option value="">Select</option>
+              {softSkillOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+
+            <label>Sub Soft Skill:</label>
             <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              required
+              type="text"
+              value={note.subSoftSkill}
+              onChange={(e) => {
+                const updated = [...dailyNotes];
+                updated[index].subSoftSkill = e.target.value;
+                setDailyNotes(updated);
+              }}
             />
 
-            <button type="button" onClick={handleNext}>
-              Next
-            </button>
+            <label>
+              <input
+                type="checkbox"
+                checked={note.isHoliday}
+                onChange={(e) => {
+                  const updated = [...dailyNotes];
+                  updated[index].isHoliday = e.target.checked;
+                  setDailyNotes(updated);
+                }}
+              />
+              Is Holiday
+            </label>
           </div>
-        )}
-
-        {step === 2 && (
-          <div>
-            <h3>Work Skills</h3>
-            {formData.tasksPage1.map((task, index) => (
-              <div key={index}>
-                <label>Work Skill {index + 1}:</label>
-                <select
-                  value={task}
-                  onChange={(e) =>
-                    handleTaskChange(index, e.target.value, "tasksPage1")
-                  }
-                  required
-                >
-                  <option value="">Select</option>
-                  {hardSkillOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ))}
-            <button type="button" onClick={handleBack}>
-              Back
-            </button>
-            <button type="button" onClick={handleNext}>
-              Next
-            </button>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div>
-            <h3>Soft Skills</h3>
-            {formData.tasksPage2.map((task, index) => (
-              <div key={index}>
-                <label>Soft Skill {index + 1}:</label>
-                <select
-                  value={task}
-                  onChange={(e) =>
-                    handleTaskChange(index, e.target.value, "tasksPage2")
-                  }
-                  required
-                >
-                  <option value="">Select</option>
-                  {softSkillOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ))}
-            <button type="button" onClick={handleBack}>
-              Back
-            </button>
-            <button type="button" onClick={handleNext}>
-              Next
-            </button>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div>
-            <h3>Daily Notes for This Month</h3>
-            {dailyNotes.map((note, index) => (
-              <div
-                key={index}
-                style={{ marginBottom: "1rem", borderBottom: "1px solid #ccc" }}
-              >
-                <strong>{new Date(note.date).toDateString()}</strong>
-
-                <label>Morning Briefing:</label>
-                <input
-                  type="text"
-                  value={note.morningBriefing}
-                  onChange={(e) => {
-                    const updated = [...dailyNotes];
-                    updated[index].morningBriefing = e.target.value;
-                    setDailyNotes(updated);
-                  }}
-                />
-
-                <label>Work Skill:</label>
-                <select
-                  value={note.workSkill}
-                  onChange={(e) => {
-                    const updated = [...dailyNotes];
-                    updated[index].workSkill = e.target.value;
-                    setDailyNotes(updated);
-                  }}
-                >
-                  <option value="">Select</option>
-                  {hardSkillOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-
-                <label>Soft Skill:</label>
-                <select
-                  value={note.softSkill}
-                  onChange={(e) => {
-                    const updated = [...dailyNotes];
-                    updated[index].softSkill = e.target.value;
-                    setDailyNotes(updated);
-                  }}
-                >
-                  <option value="">Select</option>
-                  {softSkillOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-
-                <label>Sub Soft Skill:</label>
-                <input
-                  type="text"
-                  value={note.subSoftSkill}
-                  onChange={(e) => {
-                    const updated = [...dailyNotes];
-                    updated[index].subSoftSkill = e.target.value;
-                    setDailyNotes(updated);
-                  }}
-                />
-
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={note.isHoliday}
-                    onChange={(e) => {
-                      const updated = [...dailyNotes];
-                      updated[index].isHoliday = e.target.checked;
-                      setDailyNotes(updated);
-                    }}
-                  />
-                  Is Holiday
-                </label>
-              </div>
-            ))}
-            <button type="button" onClick={handleBack}>
-              Back
-            </button>
-            <button type="submit">Confirm & Save</button>
-          </div>
-        )}
-      </form>
+        ))}
+        <button type="button" onClick={handleBack}>
+          Back
+        </button>
+        <button type="submit">Confirm & Save</button>
+      </div>
+    )}
+  </form>
     </div>
   );
 };
