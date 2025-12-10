@@ -246,125 +246,235 @@ const MonthlyReportEdit = () => {
     return shuffled.slice(0, 2).join(" "); // Combine two random templates for richness
   };
 
-  const exportMonthlyPDF = () => {
-    const doc = new jsPDF();
-    doc.setFont("helvetica");
+ const exportMonthlyPDF = () => {
+  const doc = new jsPDF();
+  doc.setFont("helvetica");
 
-    // Logo top-right
-    doc.addImage(logoBase64, "JPEG", 150, 10, 40, 20);
+  // Logo top-right
+  doc.addImage(logoBase64, "JPEG", 150, 10, 40, 20);
 
-    // Title centered
-    doc.setFontSize(16);
-    doc.setFont(undefined, "bold");
-    doc.text(
-      "MONTHLY ACTIVITY REPORT",
-      doc.internal.pageSize.getWidth() / 2,
-      20,
-      { align: "center" }
-    );
+  // Title centered
+  doc.setFontSize(16);
+  doc.setFont(undefined, "bold");
+  doc.text(
+    "MONTHLY ACTIVITY REPORT",
+    doc.internal.pageSize.getWidth() / 2,
+    20,
+    { align: "center" }
+  );
 
-    doc.setFontSize(12);
-    doc.setFont(undefined, "normal");
+  doc.setFontSize(12);
+  doc.setFont(undefined, "normal");
 
-    let y = 35;
+  let y = 35;
 
-    // Header Info
-    const monthLabel = decodeURIComponent(month);
-    doc.text(`Name: ${selectedIndividual}`, 20, y);
-    y += 10;
-    doc.text(`SSS Name: ${sss}`, 20, y);
-    y += 10;
-    doc.text(`Period: ${monthLabel} (01 to 30)`, 20, y);
-    y += 16;
+  // Header Info
+  const monthLabel = decodeURIComponent(month);
+  doc.text(`Name: ${selectedIndividual}`, 20, y);
+  y += 10;
+  doc.text(`SSS Name: ${sss}`, 20, y);
+  y += 10;
+  doc.text(`Period: ${monthLabel} (01 to 30)`, 20, y);
+  y += 16;
 
-    // Section: General Employment Goals
-    doc.setFont(undefined, "bold");
-    doc.text("General Employment Goals:", 20, y);
-    y += 8;
-    doc.setFont(undefined, "normal");
-    doc.text("• Develop and apply skills across multiple domains.", 25, y);
-    y += 8;
-    doc.text(
-      "• Engage consistently with calendar tasks and worksheets.",
-      25,
-      y
-    );
-    y += 14;
+  // Section: General & Special Goals
+  doc.setFont(undefined, "bold");
+  doc.text("General Employment Goals:", 20, y);
+  y += 8;
+  doc.setFont(undefined, "normal");
+  doc.text("• Develop and apply skills across multiple domains.", 25, y);
+  y += 8;
+  doc.text("• Engage consistently with calendar tasks and worksheets.", 25, y);
+  y += 14;
 
-    // Section: Special Employment Objectives
-    doc.setFont(undefined, "bold");
-    doc.text("Special Employment Objectives:", 20, y);
-    y += 8;
-    doc.setFont(undefined, "normal");
-    doc.text(
-      "• Focused development in key areas identified by calendar activity.",
-      25,
-      y
-    );
-    y += 14;
+  doc.setFont(undefined, "bold");
+  doc.text("Special Employment Objectives:", 20, y);
+  y += 8;
+  doc.setFont(undefined, "normal");
+  doc.text("• Focused development in key areas identified by calendar activity.", 25, y);
+  y += 14;
 
-    // Section: Work Activity Covered
-    doc.setFont(undefined, "bold");
-    doc.text("Work Activity Covered:", 20, y);
-    y += 10;
-    doc.setFont(undefined, "normal");
+  // ===================================================================
+  // TABLE 1 — Monthly Activity Details (SKILL / AI / WORKSHEETS)
+  // ===================================================================
 
-    skills.forEach((skill) => {
-      const statement = aiStatements[skill] || "No summary available.";
-      const files = worksheetsBySkill[skill] || [];
+  if (y > 250) { doc.addPage(); y = 20; }
 
-      // Skill Header
+  doc.setFont(undefined, "bold");
+  doc.text("Monthly Activity Details:", 20, y);
+  y += 12;
+  doc.setFont(undefined, "normal");
+
+  // Column positions
+  const col1X = 20;
+  const col2X = 60;
+  const col3X = 135;
+
+  // Widths
+  const col1W = 40;
+  const col2W = 75;
+  const col3W = 55;
+
+  const tableWidth = col1W + col2W + col3W;
+  let tableStartY = y;
+
+  // HEADER ROW
+  doc.setFont(undefined, "bold");
+  doc.text("Skill", col1X + 2, y);
+  doc.text("AI Summary", col2X + 2, y);
+  doc.text("Worksheets", col3X + 2, y);
+
+  y += 8;
+  doc.setFont(undefined, "normal");
+
+  let rowBottomY = y;
+
+  skills.forEach(skill => {
+    const statement = aiStatements[skill] || "No AI summary available.";
+    const files = worksheetsBySkill[skill] || [];
+    const fileNames = files.length
+      ? files.map(f => f.fileName || "Unnamed File").join(", ")
+      : "No files";
+
+    const skillLines = doc.splitTextToSize(`• ${skill}`, col1W - 4).length;
+    const aiLines = doc.splitTextToSize(statement, col2W - 4).length;
+    const fileLines = doc.splitTextToSize(fileNames, col3W - 4).length;
+
+    const neededRows = Math.max(skillLines, aiLines, fileLines);
+    const rowHeight = neededRows * 6;
+
+    if (y + rowHeight > 270) {
+      doc.addPage();
+      y = 20;
+
+      tableStartY = y;
       doc.setFont(undefined, "bold");
-      doc.text(`• ${skill}`, 25, y);
-      y += 8;
+      doc.text("Monthly Activity Details (cont.):", 20, y);
+      y += 12;
       doc.setFont(undefined, "normal");
+    }
 
-      // Wrap long statement
-      const wrappedStatement = doc.splitTextToSize(statement, 160);
-      wrappedStatement.forEach((line) => {
-        doc.text(line, 30, y);
-        y += 8;
-      });
+    // Draw row border
+    doc.rect(col1X, y - 6, tableWidth, rowHeight + 6);
 
-      // Attached files
-      if (files.length > 0) {
-        y += 4;
-        doc.text("  Attached Worksheets:", 30, y);
-        y += 8;
-        files.forEach((file) => {
-          doc.text(`    - ${file.fileName || "Unnamed File"}`, 35, y);
-          y += 8;
-          if (y > 270) {
-            doc.addPage();
-            y = 20;
-          }
-        });
-      }
+    // Skill
+    doc.text(doc.splitTextToSize(`• ${skill}`, col1W - 4), col1X + 2, y);
 
-      y += 12; // Extra space between skill sections
+    // AI Summary
+    doc.text(doc.splitTextToSize(statement, col2W - 4), col2X + 2, y);
 
-      if (y > 270) {
-        doc.addPage();
-        y = 20;
-      }
-    });
+    // Worksheets
+    doc.text(doc.splitTextToSize(fileNames, col3W - 4), col3X + 2, y);
 
-    // Section: Training & Support Links
-    doc.addPage();
-    y = 20;
-    doc.setFont(undefined, "bold");
-    doc.text("Training & Support Links:", 20, y);
-    y += 10;
-    doc.setFont(undefined, "normal");
-    doc.text("• Security & Safety: https://youtube.com/example1", 25, y);
-    y += 8;
-    doc.text("• Stocking & Merchandising: https://youtube.com/example2", 25, y);
-    y += 8;
-    doc.text("• Support & Training: https://youtube.com/example3", 25, y);
-    y += 12;
+    y += rowHeight + 6;
+    rowBottomY = y;
+  });
 
-    doc.save(`monthly-report-${selectedIndividual}-${monthLabel}.pdf`);
-  };
+  // Outer Border
+  doc.rect(col1X, tableStartY - 6, tableWidth, rowBottomY - (tableStartY - 6));
+
+  y = rowBottomY + 12;
+
+
+  // ===================================================================
+  // TABLE 2 — Plans to Support Unmet Work & Soft Skills
+  // ===================================================================
+
+  if (y > 250) { doc.addPage(); y = 20; }
+
+  doc.setFont(undefined, "bold");
+  doc.text("Plans to Support Unmet Work & Soft Skills:", 20, y);
+  y += 12;
+  doc.setFont(undefined, "normal");
+
+  const { workSkills, softSkills } = categorizeSkills(skills);
+  const fullSkills = [...workSkills, ...softSkills];
+
+  const planCol1X = 20;
+  const planCol2X = 90;
+
+  const planCol1W = 70;
+  const planCol2W = 100;
+
+  const planTableWidth = planCol1W + planCol2W;
+
+  let planStartY = y;
+
+  // Table header
+  doc.setFont(undefined, "bold");
+  doc.text("Activity", planCol1X + 2, y);
+  doc.text("Support Plan", planCol2X + 2, y);
+
+  y += 8;
+  doc.setFont(undefined, "normal");
+
+  let planRowBottomY = y;
+
+  fullSkills.forEach(skill => {
+    const plan =
+      supportPlans[skill] ||
+      generateSupportPlan(skill, selectedIndividual);
+
+    const activityLines = doc.splitTextToSize(`• ${skill}`, planCol1W - 4).length;
+    const planLines = doc.splitTextToSize(plan, planCol2W - 4).length;
+
+    const neededRows = Math.max(activityLines, planLines);
+    const rowHeight = neededRows * 6;
+
+    if (y + rowHeight > 270) {
+      doc.addPage();
+      y = 20;
+
+      planStartY = y;
+      doc.setFont(undefined, "bold");
+      doc.text("Plans to Support Unmet Work & Soft Skills (cont.):", 20, y);
+      y += 12;
+      doc.setFont(undefined, "normal");
+    }
+
+    // Row border
+    doc.rect(planCol1X, y - 6, planTableWidth, rowHeight + 6);
+
+    doc.text(doc.splitTextToSize(`• ${skill}`, planCol1W - 4), planCol1X + 2, y);
+    doc.text(doc.splitTextToSize(plan, planCol2W - 4), planCol2X + 2, y);
+
+    y += rowHeight + 6;
+    planRowBottomY = y;
+  });
+
+  // Outer border
+  doc.rect(
+    planCol1X,
+    planStartY - 6,
+    planTableWidth,
+    planRowBottomY - (planStartY - 6)
+  );
+
+  y = planRowBottomY + 15;
+
+  // ===================================================================
+  // TRAINING LINKS PAGE
+  // ===================================================================
+
+  doc.addPage();
+  y = 20;
+
+  doc.setFont(undefined, "bold");
+  doc.text("Training & Support Links:", 20, y);
+  y += 10;
+  doc.setFont(undefined, "normal");
+
+  doc.text("• Security & Safety: https://youtube.com/example1", 25, y);
+  y += 8;
+  doc.text("• Stocking & Merchandising: https://youtube.com/example2", 25, y);
+  y += 8;
+  doc.text("• Support & Training: https://youtube.com/example3", 25, y);
+  y += 12;
+
+  // Save PDF
+  doc.save(`monthly-report-${selectedIndividual}-${monthLabel}.pdf`);
+};
+
 
   if (loading) return <p>Loading report data...</p>;
 
