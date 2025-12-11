@@ -247,232 +247,263 @@ const MonthlyReportEdit = () => {
   };
 
  const exportMonthlyPDF = () => {
-  const doc = new jsPDF();
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
   doc.setFont("helvetica");
+  doc.setFontSize(11);
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const leftMargin = 15;
+  const rightMargin = 15;
+  const usableWidth = pageWidth - leftMargin - rightMargin;
 
   // Logo top-right
-  doc.addImage(logoBase64, "JPEG", 150, 10, 40, 20);
+  if (logoBase64) {
+    try {
+      doc.addImage(logoBase64, "JPEG", pageWidth - 55, 10, 40, 18);
+    } catch (e) {
+      // ignore if logo is invalid
+    }
+  }
 
-  // Title centered
+  // Title
   doc.setFontSize(16);
   doc.setFont(undefined, "bold");
+  doc.text("MONTHLY ACTIVITY REPORT", pageWidth / 2, 20, { align: "center" });
+
+  doc.setFontSize(11);
+  doc.setFont(undefined, "normal");
+
+  let y = 28;
+
+  const monthLabel = decodeURIComponent(month || "");
+  doc.text(`Name: ${selectedIndividual || "—"}`, leftMargin, y);
+  y += 6;
+  doc.text(`SSS Name: ${sss || "—"}`, leftMargin, y);
+  y += 6;
+  doc.text(`Period: ${monthLabel} (01 to 30)`, leftMargin, y);
+  y += 10;
+
+  // Goals (small section)
+  doc.setFont(undefined, "bold");
+  doc.text("Targeted Employment Goals:", leftMargin, y);
+  y += 6;
+  doc.setFont(undefined, "normal");
   doc.text(
-    "MONTHLY ACTIVITY REPORT",
-    doc.internal.pageSize.getWidth() / 2,
-    20,
-    { align: "center" }
+    "• Develop and apply skills across multiple domains. • Engage consistently with calendar tasks and worksheets.",
+    leftMargin + 3,
+    y,
+    { maxWidth: usableWidth }
   );
-
-  doc.setFontSize(12);
-  doc.setFont(undefined, "normal");
-
-  let y = 35;
-
-  // Header Info
-  const monthLabel = decodeURIComponent(month);
-  doc.text(`Name: ${selectedIndividual}`, 20, y);
   y += 10;
-  doc.text(`SSS Name: ${sss}`, 20, y);
-  y += 10;
-  doc.text(`Period: ${monthLabel} (01 to 30)`, 20, y);
-  y += 16;
 
-  // Section: General & Special Goals
+  // ---------- TABLE SETUP ----------
+  // Column widths (tuned to sample)
+  const col1W = 38; // Skill
+  const col2W = usableWidth - col1W - 60; // AI Summary (flex)
+  const col3W = 60; // Worksheets
+
+  const col1X = leftMargin;
+  const col2X = col1X + col1W;
+  const col3X = col2X + col2W;
+
+  const headerHeight = 8;
+  const cellLineHeight = 5;
+  const cellPadding = 3;
+
+  const safeAddPage = () => {
+    doc.addPage();
+    y = 20;
+  };
+
+  const renderTableHeader = (title) => {
+  // Add space ABOVE the section title
+  y += 4;
+
+  // Title above table
   doc.setFont(undefined, "bold");
-  doc.text("General Employment Goals:", 20, y);
-  y += 8;
-  doc.setFont(undefined, "normal");
-  doc.text("• Develop and apply skills across multiple domains.", 25, y);
-  y += 8;
-  doc.text("• Engage consistently with calendar tasks and worksheets.", 25, y);
-  y += 14;
+  doc.text(title, leftMargin, y);
+  y += 10;  // <<< increased space below title
 
+  // Header background (light gray)
+  doc.setFillColor(230, 230, 230);
+  doc.rect(col1X - 0.5, y - headerHeight + 1, col1W + col2W + col3W + 1, headerHeight, "F");
+
+  // Header text
   doc.setFont(undefined, "bold");
-  doc.text("Special Employment Objectives:", 20, y);
-  y += 8;
-  doc.setFont(undefined, "normal");
-  doc.text("• Focused development in key areas identified by calendar activity.", 25, y);
-  y += 14;
-
-  // ===================================================================
-  // TABLE 1 — Monthly Activity Details (SKILL / AI / WORKSHEETS)
-  // ===================================================================
-
-  if (y > 250) { doc.addPage(); y = 20; }
-
-  doc.setFont(undefined, "bold");
-  doc.text("Monthly Activity Details:", 20, y);
-  y += 12;
-  doc.setFont(undefined, "normal");
-
-  // Column positions
-  const col1X = 20;
-  const col2X = 60;
-  const col3X = 135;
-
-  // Widths
-  const col1W = 40;
-  const col2W = 75;
-  const col3W = 55;
-
-  const tableWidth = col1W + col2W + col3W;
-  let tableStartY = y;
-
-  // HEADER ROW
-  doc.setFont(undefined, "bold");
-  doc.text("Skill", col1X + 2, y);
-  doc.text("AI Summary", col2X + 2, y);
-  doc.text("Worksheets", col3X + 2, y);
-
-  y += 8;
+  doc.setTextColor(0, 0, 0);
+  doc.text("Skill", col1X + cellPadding, y - 2);
+  doc.text("AI Summary", col2X + cellPadding, y - 2);
+  doc.text("Worksheets", col3X + cellPadding, y - 2);
   doc.setFont(undefined, "normal");
 
-  let rowBottomY = y;
+  doc.setDrawColor(0, 0, 0);
+  doc.rect(col1X - 0.5, y - headerHeight + 1, col1W + col2W + col3W + 1, headerHeight);
 
-  skills.forEach(skill => {
-    const statement = aiStatements[skill] || "No AI summary available.";
-    const files = worksheetsBySkill[skill] || [];
-    const fileNames = files.length
-      ? files.map(f => f.fileName || "Unnamed File").join(", ")
-      : "No files";
+  y += 8; // <<< more space before first row starts
+};
 
-    const skillLines = doc.splitTextToSize(`• ${skill}`, col1W - 4).length;
-    const aiLines = doc.splitTextToSize(statement, col2W - 4).length;
-    const fileLines = doc.splitTextToSize(fileNames, col3W - 4).length;
+  // ---------- RENDER MONTHLY ACTIVITY TABLE ----------
+  renderTableHeader("Monthly Activity Details:");
 
-    const neededRows = Math.max(skillLines, aiLines, fileLines);
-    const rowHeight = neededRows * 6;
+  // keep track of table top for outer border (per page segment)
+  let tableSegmentTop = y - 6;
 
-    if (y + rowHeight > 270) {
-      doc.addPage();
-      y = 20;
+  // iterate skills
+  for (let si = 0; si < skills.length; si++) {
+    const skill = skills[si];
+    const ai = (aiStatements && aiStatements[skill]) || "No AI summary available.";
+    const files = (worksheetsBySkill && worksheetsBySkill[skill]) || [];
+    const fileNames = files.length ? files.map((f) => f.fileName || "Unnamed File").join(", ") : "No files";
 
-      tableStartY = y;
-      doc.setFont(undefined, "bold");
-      doc.text("Monthly Activity Details (cont.):", 20, y);
-      y += 12;
-      doc.setFont(undefined, "normal");
+    // split text into lines that fit each column
+    const skillLines = doc.splitTextToSize(`• ${skill}`, col1W - cellPadding * 2);
+    const aiLines = doc.splitTextToSize(ai, col2W - cellPadding * 2);
+    const fileLines = doc.splitTextToSize(fileNames, col3W - cellPadding * 2);
+
+    const maxLines = Math.max(skillLines.length, aiLines.length, fileLines.length) || 1;
+    const rowHeight = maxLines * cellLineHeight + cellPadding * 2;
+
+    // If not enough room, add page and re-render header
+    if (y + rowHeight + 20 > pageHeight) {
+      // draw outer border for this segment before page break
+      doc.rect(col1X - 0.5, tableSegmentTop, col1W + col2W + col3W + 1, y - tableSegmentTop);
+      safeAddPage();
+      renderTableHeader("Monthly Activity Details (cont.):");
+      tableSegmentTop = y - 6;
     }
 
-    // Draw row border
-    doc.rect(col1X, y - 6, tableWidth, rowHeight + 6);
+    // Draw thin inner cell borders and fill rows with text
+    // Skill cell border
+    doc.rect(col1X - 0.5, y - 2, col1W, rowHeight);
+    // AI cell
+    doc.rect(col2X - 0.5, y - 2, col2W, rowHeight);
+    // Files cell
+    doc.rect(col3X - 0.5, y - 2, col3W + 1, rowHeight);
 
-    // Skill
-    doc.text(doc.splitTextToSize(`• ${skill}`, col1W - 4), col1X + 2, y);
+    // Print text vertically aligned top + padding
+    for (let i = 0; i < maxLines; i++) {
+      const lineY = y + cellPadding + i * cellLineHeight;
+      doc.text(skillLines[i] || "", col1X + cellPadding, lineY);
+      doc.text(aiLines[i] || "", col2X + cellPadding, lineY, { maxWidth: col2W - cellPadding * 2 });
+      doc.text(fileLines[i] || "", col3X + cellPadding, lineY, { maxWidth: col3W - cellPadding * 2 });
+    }
 
-    // AI Summary
-    doc.text(doc.splitTextToSize(statement, col2W - 4), col2X + 2, y);
+    y += rowHeight + 2;
+  }
 
-    // Worksheets
-    doc.text(doc.splitTextToSize(fileNames, col3W - 4), col3X + 2, y);
+  // Outer border for final segment
+  doc.rect(col1X - 0.5, tableSegmentTop, col1W + col2W + col3W + 1, y - tableSegmentTop);
+  y += 8;
 
-    y += rowHeight + 6;
-    rowBottomY = y;
-  });
-
-  // Outer Border
-  doc.rect(col1X, tableStartY - 6, tableWidth, rowBottomY - (tableStartY - 6));
-
-  y = rowBottomY + 12;
-
-
-  // ===================================================================
-  // TABLE 2 — Plans to Support Unmet Work & Soft Skills
-  // ===================================================================
-
-  if (y > 250) { doc.addPage(); y = 20; }
-
-  doc.setFont(undefined, "bold");
-  doc.text("Plans to Support Unmet Work & Soft Skills:", 20, y);
-  y += 12;
-  doc.setFont(undefined, "normal");
-
+  // ---------- RENDER SUPPORT PLANS TABLE (separate, bordered) ----------
+  // We'll render as two separate sections (Work then Soft) in the same styled boxed table.
   const { workSkills, softSkills } = categorizeSkills(skills);
-  const fullSkills = [...workSkills, ...softSkills];
 
-  const planCol1X = 20;
-  const planCol2X = 90;
-
-  const planCol1W = 70;
-  const planCol2W = 100;
-
-  const planTableWidth = planCol1W + planCol2W;
-
-  let planStartY = y;
-
-  // Table header
-  doc.setFont(undefined, "bold");
-  doc.text("Activity", planCol1X + 2, y);
-  doc.text("Support Plan", planCol2X + 2, y);
-
-  y += 8;
-  doc.setFont(undefined, "normal");
-
-  let planRowBottomY = y;
-
-  fullSkills.forEach(skill => {
-    const plan =
-      supportPlans[skill] ||
-      generateSupportPlan(skill, selectedIndividual);
-
-    const activityLines = doc.splitTextToSize(`• ${skill}`, planCol1W - 4).length;
-    const planLines = doc.splitTextToSize(plan, planCol2W - 4).length;
-
-    const neededRows = Math.max(activityLines, planLines);
-    const rowHeight = neededRows * 6;
-
-    if (y + rowHeight > 270) {
+  const renderPlanTable = (title, items) => {
+    if (!items || items.length === 0) return;
+    if (y + 60 > pageHeight) {
       doc.addPage();
       y = 20;
-
-      planStartY = y;
-      doc.setFont(undefined, "bold");
-      doc.text("Plans to Support Unmet Work & Soft Skills (cont.):", 20, y);
-      y += 12;
-      doc.setFont(undefined, "normal");
     }
 
-    // Row border
-    doc.rect(planCol1X, y - 6, planTableWidth, rowHeight + 6);
+    doc.setFont(undefined, "bold");
+    doc.text(title, leftMargin, y);
+    y += 8;
+    doc.setFont(undefined, "normal");
 
-    doc.text(doc.splitTextToSize(`• ${skill}`, planCol1W - 4), planCol1X + 2, y);
-    doc.text(doc.splitTextToSize(plan, planCol2W - 4), planCol2X + 2, y);
+    const pCol1W = 55;
+    const pCol2W = usableWidth - pCol1W;
 
-    y += rowHeight + 6;
-    planRowBottomY = y;
-  });
+    const pCol1X = leftMargin;
+    const pCol2X = pCol1X + pCol1W;
 
-  // Outer border
-  doc.rect(
-    planCol1X,
-    planStartY - 6,
-    planTableWidth,
-    planRowBottomY - (planStartY - 6)
-  );
+    // header background
+    doc.setFillColor(230, 230, 230);
+    doc.rect(pCol1X - 0.5, y - 7, pCol1W + pCol2W + 1, headerHeight, "F");
 
-  y = planRowBottomY + 15;
+    // header text
+    doc.setFont(undefined, "bold");
+    doc.text("Activity", pCol1X + 3, y - 3);
+    doc.text("Support Plan", pCol2X + 3, y - 3);
+    doc.setFont(undefined, "normal");
+    doc.rect(pCol1X - 0.5, y - 7, pCol1W + pCol2W + 1, headerHeight);
+    y += 6;
 
-  // ===================================================================
-  // TRAINING LINKS PAGE
-  // ===================================================================
+    const segmentTop = y - 6;
+    let segmentBottom = y;
 
-  doc.addPage();
-  y = 20;
+    for (let i = 0; i < items.length; i++) {
+      const skill = items[i];
+      const plan = supportPlans[skill] || generateSupportPlan(skill, selectedIndividual) || "No plan available.";
+      const activityLines = doc.splitTextToSize(`• ${skill}`, pCol1W - 6);
+      const planLines = doc.splitTextToSize(plan, pCol2W - 6);
+      const maxL = Math.max(activityLines.length, planLines.length);
+      const rowH = maxL * cellLineHeight + cellPadding * 2;
+
+      if (y + rowH + 20 > pageHeight) {
+        // close outer border for this table segment
+        doc.rect(pCol1X - 0.5, segmentTop, pCol1W + pCol2W + 1, segmentBottom - segmentTop);
+        doc.addPage();
+        y = 20;
+
+        // re-render header on new page
+        doc.setFillColor(230, 230, 230);
+        doc.rect(pCol1X - 0.5, y - 7, pCol1W + pCol2W + 1, headerHeight, "F");
+        doc.setFont(undefined, "bold");
+        doc.text("Activity", pCol1X + 3, y - 3);
+        doc.text("Support Plan", pCol2X + 3, y - 3);
+        doc.setFont(undefined, "normal");
+        doc.rect(pCol1X - 0.5, y - 7, pCol1W + pCol2W + 1, headerHeight);
+        y += 6;
+        segmentBottom = y;
+      }
+
+      // draw row border
+      doc.rect(pCol1X - 0.5, y - 2, pCol1W, rowH);
+      doc.rect(pCol2X - 0.5, y - 2, pCol2W + 1, rowH);
+
+      // print lines
+      for (let li = 0; li < maxL; li++) {
+        const lineY = y + cellPadding + li * cellLineHeight;
+        doc.text(activityLines[li] || "", pCol1X + 3, lineY);
+        doc.text(planLines[li] || "", pCol2X + 3, lineY, { maxWidth: pCol2W - 6 });
+      }
+
+      y += rowH + 4;
+      segmentBottom = y;
+    }
+
+    // draw outer border for this plan table segment
+    doc.rect(pCol1X - 0.5, segmentTop, pCol1W + pCol2W + 1, segmentBottom - segmentTop);
+    y += 8;
+  };
+
+  // render work then soft
+  renderPlanTable("Plans to Support Unmet Work Activities:", workSkills);
+  renderPlanTable("Plans to Support Unmet Soft Skills:", softSkills);
+
+  // ---------- TRAINING LINKS ----------
+
+  if (y + 60 > pageHeight) {
+    doc.addPage();
+    y = 20;
+  } else {
+    y += 4;
+  }
 
   doc.setFont(undefined, "bold");
-  doc.text("Training & Support Links:", 20, y);
-  y += 10;
+  doc.text("Training & Support Links:", leftMargin, y);
+  y += 8;
   doc.setFont(undefined, "normal");
+  doc.text("• Security & Safety: https://youtube.com/example1", leftMargin + 5, y);
+  y += 6;
+  doc.text("• Stocking & Merchandising: https://youtube.com/example2", leftMargin + 5, y);
+  y += 6;
+  doc.text("• Support & Training: https://youtube.com/example3", leftMargin + 5, y);
 
-  doc.text("• Security & Safety: https://youtube.com/example1", 25, y);
-  y += 8;
-  doc.text("• Stocking & Merchandising: https://youtube.com/example2", 25, y);
-  y += 8;
-  doc.text("• Support & Training: https://youtube.com/example3", 25, y);
-  y += 12;
-
-  // Save PDF
-  doc.save(`monthly-report-${selectedIndividual}-${monthLabel}.pdf`);
+  // final save
+  doc.save(`monthly-report-${selectedIndividual || "person"}-${monthLabel || "period"}.pdf`);
 };
 
 
